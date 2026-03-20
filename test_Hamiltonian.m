@@ -1,0 +1,93 @@
+close all
+rng(1)
+
+n = 4000;
+nn = n/2;
+sigma = 1;
+tau = 1e-3;
+iterMax = 15;
+
+err = ones(6,iterMax)*inf;
+v0 = randn(nn,1);
+v0 = v0/norm(v0);
+U = zeros(nn,iterMax);
+P = randn(nn,nn);
+for iter = 1:iterMax
+    U(:,iter) = expm(tau*iter*P)*v0;
+end
+Q1 = orth(randn(nn,nn));
+Q2 = orth(randn(nn,nn));
+
+Q = [Q1+Q2,Q1-Q2;Q1-Q2,Q1+Q2]/2;
+lambda = sigma;
+M = [zeros(nn),eye(nn);eye(nn),zeros(nn)];
+A0 = randn(nn,nn);
+A0 = A0'+A0;
+A0 = A0-v0*(v0'*A0)-(A0*v0)*v0'+v0'*A0*v0*(v0*v0');
+A0 = (A0+A0')/2;
+
+A2 = randn(nn,nn);
+A2 = A2'+A2;
+
+U = [U;zeros(nn,iterMax)];
+v = [v0;zeros(nn,1)];
+v = Q*v;
+U = Q*U;
+for type = 1:2
+
+if type==1
+    A1 = randn(nn,nn);
+    A1 = A1-(A1*v0)*v0'+(lambda*v0)*v0';
+else
+    A1 = (lambda*v0)*v0';   
+end
+A = [A0,-A1';A1,A2];
+
+
+
+
+A = Q*A*Q';
+
+for iter = 1:iterMax
+W = orth(U(:,1:iter));
+err(1,iter) = subspace(v,W);
+
+% RR 
+[Y,Mu] = eig(W'*A*W,W'*M*W);
+[w,mu] = ritz(A,M,Y,Mu,W);
+err(2,iter) = subspace(w,v);
+err(3,iter) = abs(mu-lambda);
+
+% RRR
+Omega = randn(n,size(W,2))+1i*randn(n,size(W,2));
+[Y,Mu] = eig(Omega'*A*W,Omega'*M*W);
+[w,mu] = ritz(A,M,Y,Mu,W);
+err(4,iter) = subspace(w,v);
+err(5,iter) = abs(mu-lambda);
+err(6,iter) = abs((M*w)\(A*w)-lambda);
+
+end
+
+figure
+hold on
+plot(err(1,:),'k-','LineWidth',2,'DisplayName','angle')
+plot(err(2,:),'r-','LineWidth',2,'DisplayName','R-vec')
+plot(err(3,:),'r--','LineWidth',2,'DisplayName','R-val')
+plot(err(4,:),'b-','LineWidth',2,'DisplayName','RR-vec')
+plot(err(5,:),'b--','LineWidth',2,'DisplayName','RR-val')
+plot(err(6,:),'b--o','LineWidth',2,'DisplayName','RRR-val')
+hold off
+set(gca,'yscale','log')
+set(gcf, 'Color', 'w');
+legend('box','off','FontSize',14)
+
+export_fig(['fig/ham',num2str(type),'.pdf'])
+export_fig(['fig/ham',num2str(type),'.eps'])
+end
+function [w,mu] = ritz(A,M,Y,Mu,W)
+    W = W*Y;
+    R = A*W-M*W*Mu;
+    [~,idx] = min(vecnorm(R));
+    mu = Mu(idx,idx);
+    w = W(:,idx);
+end
