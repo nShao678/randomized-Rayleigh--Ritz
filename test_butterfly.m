@@ -67,27 +67,33 @@ for type = 1:2
         err(5,iter) = min(abs(mu-lambda));
         err(6,iter) = subspace(v,w);
 
-        coef = zeros(1,len);
-        for ii = 1:len
-            coef(ii) = X(:,iter)'*coeffs{len+1-ii}*X(:,iter);
-        end
-        mu = roots(coef);
-        err(7,iter) = min(abs(mu-lambda));
-
-        err(8,iter) = subspace(v,X(:,iter));
+%         coef = zeros(1,len);
+%         for ii = 1:len
+%             coef(ii) = X(:,iter)'*coeffs{len+1-ii}*X(:,iter);
+%         end
+%         mu = roots(coef);
+%         err(7,iter) = min(abs(mu-lambda));
+% 
+%         err(8,iter) = subspace(v,X(:,iter));
     end
     % coef
 
+    if type==1
+        xx = 1:20;
+    else
+        xx = 1:25;
+    end
+    save(['data_bf',num2str(type)])
     figure
     hold on
-    plot(err(1,:),'k-','LineWidth',2,'DisplayName','angle')
-    plot(err(3,:),'r-','LineWidth',2,'DisplayName','R-vec')
-    plot(err(2,:),'r--','LineWidth',2,'DisplayName','R-val')
-    plot(err(6,:),'b-','LineWidth',2,'DisplayName','RR-vec')
-    plot(err(4,:),'b--','LineWidth',2,'DisplayName','RR-val')
-    plot(err(5,:),'b--o','LineWidth',2,'DisplayName','RRR-val')
-    plot(err(8,:),'m-','LineWidth',2,'DisplayName','resinvit-vec')
-    plot(err(7,:),'m--','LineWidth',2,'DisplayName','resinvit-val')
+    plot(xx,err(1,xx),'k-','LineWidth',2,'DisplayName','angle')
+    plot(xx,err(3,xx),'r-','LineWidth',2,'DisplayName','RR-Vec')
+    plot(xx,err(2,xx),'r--','LineWidth',2,'DisplayName','RR-Val')
+    plot(xx,err(6,xx),'b-','LineWidth',2,'DisplayName','RRR-Vec')
+    plot(xx,err(4,xx),'b--','LineWidth',2,'DisplayName','RRR-Val')
+    plot(xx,err(5,xx),'b--o','LineWidth',2,'DisplayName','RRR-reVal')
+%     plot(err(8,:),'m-','LineWidth',2,'DisplayName','resinvit-vec')
+%     plot(err(7,:),'m--','LineWidth',2,'DisplayName','resinvit-val')
     
     hold off
     set(gca,'yscale','log')

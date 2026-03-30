@@ -53,22 +53,22 @@ err0  =err;
 for ii = 1:6
     err(ii,:) = sort(err(ii,:),'descend');
 end
-
+save('data_fp')
 %%
 figure
 hold on
 xx = round(linspace(1,sampleMax,50));
 numdata = 100;
-plot(xx,err(2,xx),'b-','LineWidth',2,'DisplayName','Ritz-vec')
-plot(xx,err(1,xx),'r-','LineWidth',2,'DisplayName','Ritz-val')
-plot(xx,err(3,xx),'m-','LineWidth',2,'DisplayName','Refined-val')
-plot(xx,err(5,xx),'b--o','LineWidth',2,'DisplayName','Ritz-vec-os')
-plot(xx,err(4,xx),'r--o','LineWidth',2,'DisplayName','Ritz-val-os')
-plot(xx,err(6,xx),'m--o','LineWidth',2,'DisplayName','Refined-val-os')
+plot(xx,err(2,xx),'b-','LineWidth',2,'DisplayName','RRR-Vec')
+plot(xx,err(1,xx),'r-','LineWidth',2,'DisplayName','RRR-Val')
+plot(xx,err(3,xx),'m-','LineWidth',2,'DisplayName','RRR-reVal')
+plot(xx,err(5,xx),'b--o','LineWidth',2,'DisplayName','RRR-Vec-os')
+plot(xx,err(4,xx),'r--o','LineWidth',2,'DisplayName','RRR-Val-os')
+plot(xx,err(6,xx),'m--o','LineWidth',2,'DisplayName','RRR-reVal-os')
 
 hold off
 set(gca,'YScale','log')
-legend('Interpreter','latex','box','off','Location','southwest','FontSize',14,'NumColumns', 2)
+legend('box','off','Location','southwest','FontSize',14,'NumColumns', 2)
 
 set(gcf, 'Color', 'w');
 export_fig(['fig/fp1.pdf'])
@@ -79,15 +79,15 @@ xx = 2.^(1:8);
 figure
 hold on
 
-p1 = plot(xx/sampleMax, err(2,xx), 'b-', 'LineWidth', 2, 'DisplayName', 'Ritz-vec');
-p2 = plot(xx/sampleMax, err(1,xx), 'r-', 'LineWidth', 2, 'DisplayName', 'Ritz-val');
-p3 = plot(xx/sampleMax, err(3,xx), 'm-', 'LineWidth', 2, 'DisplayName', 'Refined-val');
+p1 = plot(xx/sampleMax, err(2,xx), 'b-', 'LineWidth', 2, 'DisplayName', 'RRR-Vec');
+p2 = plot(xx/sampleMax, err(1,xx), 'r-', 'LineWidth', 2, 'DisplayName', 'RRR-Val');
+p3 = plot(xx/sampleMax, err(3,xx), 'm-', 'LineWidth', 2, 'DisplayName', 'RRR-reVal');
 
 plot((xx/sampleMax), 1e-8./sqrt(xx/sampleMax), 'k--', 'LineWidth', 2);  
 
-p5 = plot(xx/sampleMax, err(5,xx), 'b--o', 'LineWidth', 2, 'DisplayName', 'Ritz-vec-os');
-p6 = plot(xx/sampleMax, err(4,xx), 'r--o', 'LineWidth', 2, 'DisplayName', 'Ritz-val-os');
-p7 = plot(xx/sampleMax, err(6,xx), 'm--o', 'LineWidth', 2, 'DisplayName', 'Refined-val-os');
+p5 = plot(xx/sampleMax, err(5,xx), 'b--o', 'LineWidth', 2, 'DisplayName', 'RRR-Vec-os');
+p6 = plot(xx/sampleMax, err(4,xx), 'r--o', 'LineWidth', 2, 'DisplayName', 'RRR-Val-os');
+p7 = plot(xx/sampleMax, err(6,xx), 'm--o', 'LineWidth', 2, 'DisplayName', 'RRR-reVal-os');
 
 p8 = plot((xx/sampleMax), 2.5e-7./sqrt(xx/sampleMax), 'k--', 'LineWidth', 2, 'DisplayName', '$y\propto 1/\sqrt{x}$');
 
@@ -103,7 +103,6 @@ legend([p1 p2 p3 p_empty p5 p6 p7 p8], ...
        'Location','east', ...
        'FontSize',14, ...
        'NumColumns',2)
-
 set(gcf, 'Color', 'w');
 export_fig(['fig/fp2.pdf'])
 export_fig(['fig/fp2.eps'])

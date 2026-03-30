@@ -5,7 +5,7 @@ n = 4000;
 nn = n/2;
 sigma = 1;
 tau = 1e-3;
-iterMax = 15;
+iterMax = 10;
 
 err = ones(6,iterMax)*inf;
 v0 = randn(nn,1);
@@ -35,59 +35,61 @@ v = Q*v;
 U = Q*U;
 for type = 1:2
 
-if type==1
-    A1 = randn(nn,nn);
-    A1 = A1-(A1*v0)*v0'+(lambda*v0)*v0';
-else
-    A1 = (lambda*v0)*v0';   
-end
-A = [A0,-A1';A1,A2];
+    if type==1
+        A1 = randn(nn,nn);
+        A1 = A1-(A1*v0)*v0'+(lambda*v0)*v0';
+    else
+        A1 = (lambda*v0)*v0';
+    end
+    A = [A0,-A1';A1,A2];
 
 
 
 
-A = Q*A*Q';
+    A = Q*A*Q';
 
-for iter = 1:iterMax
-W = orth(U(:,1:iter));
-err(1,iter) = subspace(v,W);
+    for iter = 1:iterMax
+        W = orth(U(:,1:iter));
+        err(1,iter) = subspace(v,W);
 
-% RR 
-[Y,Mu] = eig(W'*A*W,W'*M*W);
-[w,mu] = ritz(A,M,Y,Mu,W);
-err(2,iter) = subspace(w,v);
-err(3,iter) = abs(mu-lambda);
+        % RR
+        [Y,Mu] = eig(W'*A*W,W'*M*W);
+        [w,mu] = ritz(A,M,Y,Mu,W);
+        err(2,iter) = subspace(w,v);
+        err(3,iter) = abs(mu-lambda);
 
-% RRR
-Omega = randn(n,size(W,2))+1i*randn(n,size(W,2));
-[Y,Mu] = eig(Omega'*A*W,Omega'*M*W);
-[w,mu] = ritz(A,M,Y,Mu,W);
-err(4,iter) = subspace(w,v);
-err(5,iter) = abs(mu-lambda);
-err(6,iter) = abs((M*w)\(A*w)-lambda);
+        % RRR
+        Omega = randn(n,size(W,2))+1i*randn(n,size(W,2));
+        [Y,Mu] = eig(Omega'*A*W,Omega'*M*W);
+        [w,mu] = ritz(A,M,Y,Mu,W);
+        err(4,iter) = subspace(w,v);
+        err(5,iter) = abs(mu-lambda);
+        err(6,iter) = abs((M*w)\(A*w)-lambda);
 
-end
+    end
 
-figure
-hold on
-plot(err(1,:),'k-','LineWidth',2,'DisplayName','angle')
-plot(err(2,:),'r-','LineWidth',2,'DisplayName','R-vec')
-plot(err(3,:),'r--','LineWidth',2,'DisplayName','R-val')
-plot(err(4,:),'b-','LineWidth',2,'DisplayName','RR-vec')
-plot(err(5,:),'b--','LineWidth',2,'DisplayName','RR-val')
-plot(err(6,:),'b--o','LineWidth',2,'DisplayName','RRR-val')
-hold off
-set(gca,'yscale','log')
-set(gcf, 'Color', 'w');
-legend('box','off','FontSize',14)
+    save(['data_ham',num2str(type)])
+    xx = 1:10;
+    figure
+    hold on
+    plot(xx,err(1,xx),'k-','LineWidth',2,'DisplayName','angle')
+    plot(xx,err(2,xx),'r-','LineWidth',2,'DisplayName','RR-Vec')
+    plot(xx,err(3,xx),'r--','LineWidth',2,'DisplayName','RR-Val')
+    plot(xx,err(4,xx),'b-','LineWidth',2,'DisplayName','RRR-Vec')
+    plot(xx,err(5,xx),'b--','LineWidth',2,'DisplayName','RRR-Val')
+    plot(xx,err(6,xx),'b--o','LineWidth',2,'DisplayName','RRR-reVal')
+    hold off
+    set(gca,'yscale','log')
+    set(gcf, 'Color', 'w');
+    legend('box','off','FontSize',14)
 
-export_fig(['fig/ham',num2str(type),'.pdf'])
-export_fig(['fig/ham',num2str(type),'.eps'])
+    export_fig(['fig/ham',num2str(type),'.pdf'])
+    export_fig(['fig/ham',num2str(type),'.eps'])
 end
 function [w,mu] = ritz(A,M,Y,Mu,W)
-    W = W*Y;
-    R = A*W-M*W*Mu;
-    [~,idx] = min(vecnorm(R));
-    mu = Mu(idx,idx);
-    w = W(:,idx);
+W = W*Y;
+R = A*W-M*W*Mu;
+[~,idx] = min(vecnorm(R));
+mu = Mu(idx,idx);
+w = W(:,idx);
 end
