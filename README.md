@@ -8,4 +8,4 @@ To reproduce Fig. 5.2, run test_butterfly.
 
 To reproduce Fig. 5.3, run test_fp.
 
-[1]: Nian Shao. ``Stabilizing Rayleigh--Ritz procedure via randomization.'' arXiv:
+[1]: Nian Shao. Stabilizing the Rayleigh--Ritz procedure by randomization. arXiv:2604.01037
