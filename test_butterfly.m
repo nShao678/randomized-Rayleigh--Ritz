@@ -3,10 +3,11 @@ close all
 clear all
 
 n = 4096;
-[coeffs,fun,F] = butterfly(n);
+[coeffs,~,F] = butterfly(n);
 len = length(coeffs);
 n = size(coeffs{1},1);
-
+nTrial = 1000;
+qs = [0.1 0.5 0.9];
 
 for type = 1:2
     iterMax = 100;
@@ -28,82 +29,74 @@ for type = 1:2
             break
         end
     end
-    norm(F(rho)*x)
     lambda = rho;
     v = x;
-    err = zeros(8,iterMax);
+
+    errRR = zeros(3,iterMax);
+    errRRR = zeros(3,iterMax,nTrial);
     projA = cell(1,len);
     for iter = 1:iterMax
-
         W = orth(X(:,1:iter));
-        err(1,iter) = subspace(v,W);
+        errRR(1,iter) = subspace(v,W);
 
-        % RR
         for ii = 1:len
             projA{ii} = W'*coeffs{ii}*W;
         end
         [Y,Mu] = polyeig(projA{:});
         [w,mu] = ritz(Y,Mu,lambda,W);
-        err(2,iter) = abs(mu-lambda);
-        err(3,iter) = subspace(v,w);
+        errRR(2,iter) = abs(mu-lambda);
+        errRR(3,iter) = subspace(v,w);
 
-
-
-        % RRR
-
-        Omega = randn(size(W))+1i*randn(size(W));
+        AW = cell(1,len);
         for ii = 1:len
-            projA{ii} = Omega'*coeffs{ii}*W;
+            AW{ii} = coeffs{ii}*W;
         end
-        [Y,Mu] = polyeig(projA{:});
-        [w,mu] = ritz(Y,Mu,lambda,W);
-        err(4,iter) = abs(mu-lambda);
 
-        coef = zeros(1,len);
-        for ii = 1:len
-            coef(ii) = w'*coeffs{len+1-ii}*w;
+        for t = 1:nTrial
+            Omega = randn(size(W))+1i*randn(size(W));
+            for ii = 1:len
+                projA{ii} = Omega'*AW{ii};
+            end
+            [Y,Mu] = polyeig(projA{:});
+            [w,mu] = ritz(Y,Mu,lambda,W);
+            errRRR(1,iter,t) = abs(mu-lambda);
+
+            coef = zeros(1,len);
+            for ii = 1:len
+                coef(ii) = w'*coeffs{len+1-ii}*w;
+            end
+            mu = roots(coef);
+            errRRR(2,iter,t) = min(abs(mu-lambda));
+            errRRR(3,iter,t) = subspace(v,w);
         end
-        mu = roots(coef);
-        err(5,iter) = min(abs(mu-lambda));
-        err(6,iter) = subspace(v,w);
-
-%         coef = zeros(1,len);
-%         for ii = 1:len
-%             coef(ii) = X(:,iter)'*coeffs{len+1-ii}*X(:,iter);
-%         end
-%         mu = roots(coef);
-%         err(7,iter) = min(abs(mu-lambda));
-% 
-%         err(8,iter) = subspace(v,X(:,iter));
     end
-    % coef
+
+    Q = quantile(errRRR,qs,3);
 
     if type==1
         xx = 1:20;
     else
         xx = 1:25;
     end
-    save(['data_bf',num2str(type)])
     figure
     hold on
-    plot(xx,err(1,xx),'k-','LineWidth',2,'DisplayName','angle')
-    plot(xx,err(3,xx),'r-','LineWidth',2,'DisplayName','RR-Vec')
-    plot(xx,err(2,xx),'r--','LineWidth',2,'DisplayName','RR-Val')
-    plot(xx,err(6,xx),'b-','LineWidth',2,'DisplayName','RRR-Vec')
-    plot(xx,err(4,xx),'b--','LineWidth',2,'DisplayName','RRR-Val')
-    plot(xx,err(5,xx),'b--o','LineWidth',2,'DisplayName','RRR-reVal')
-%     plot(err(8,:),'m-','LineWidth',2,'DisplayName','resinvit-vec')
-%     plot(err(7,:),'m--','LineWidth',2,'DisplayName','resinvit-val')
-    
+    band = @(r) fill([xx fliplr(xx)],[Q(r,xx,1) fliplr(Q(r,xx,3))],'b', ...
+        'FaceAlpha',0.15,'EdgeColor','none','HandleVisibility','off');
+    band(3); band(1); band(2);
+    plot(xx,errRR(1,xx),'k-','LineWidth',2,'DisplayName','angle')
+    plot(xx,errRR(3,xx),'r-','LineWidth',2,'DisplayName','RR-Vec')
+    plot(xx,errRR(2,xx),'r--','LineWidth',2,'DisplayName','RR-Val')
+    plot(xx,Q(3,xx,2),'b-','LineWidth',2,'DisplayName','RRR-Vec')
+    plot(xx,Q(1,xx,2),'b--','LineWidth',2,'DisplayName','RRR-Val')
+    plot(xx,Q(2,xx,2),'b--o','LineWidth',2,'DisplayName','RRR-reVal')
     hold off
     set(gca,'yscale','log')
-    set(gcf, 'Color', 'w');
+    set(gcf,'Color','w');
     legend('box','off','FontSize',14,'Location','southwest')
-
     export_fig(['fig/butterfly',num2str(type),'.pdf'])
     export_fig(['fig/butterfly',num2str(type),'.eps'])
-
 end
+
 function [w,mu] = ritz(Y,Mu,lambda,W)
 [~,idx] = min(abs(Mu-lambda));
 mu = Mu(idx);
@@ -125,6 +118,4 @@ for ii = len-1:-1:1
 end
 x = x-DT\y;
 x = x/norm(x);
-
-
 end
