@@ -8,25 +8,25 @@ tau = 1e-3;
 iterMax = 10;
 
 err = ones(6,iterMax)*inf;
-v0 = randn(nn,1);
+v0 = crandn(nn,1);
 v0 = v0/norm(v0);
 U = zeros(nn,iterMax);
-P = randn(nn,nn);
+P = crandn(nn,nn);
 for iter = 1:iterMax
     U(:,iter) = expm(tau*iter*P)*v0;
 end
-Q1 = orth(randn(nn,nn));
-Q2 = orth(randn(nn,nn));
+Q1 = randunitary(nn);
+Q2 = randunitary(nn);
 
 Q = [Q1+Q2,Q1-Q2;Q1-Q2,Q1+Q2]/2;
 lambda = sigma;
 M = [zeros(nn),eye(nn);eye(nn),zeros(nn)];
-A0 = randn(nn,nn);
+A0 = crandn(nn,nn);
 A0 = A0'+A0;
 A0 = A0-v0*(v0'*A0)-(A0*v0)*v0'+v0'*A0*v0*(v0*v0');
 A0 = (A0+A0')/2;
 
-A2 = randn(nn,nn);
+A2 = crandn(nn,nn);
 A2 = A2'+A2;
 
 U = [U;zeros(nn,iterMax)];
@@ -36,7 +36,7 @@ U = Q*U;
 for type = 1:2
 
     if type==1
-        A1 = randn(nn,nn);
+        A1 = crandn(nn,nn);
         A1 = A1-(A1*v0)*v0'+(lambda*v0)*v0';
     else
         A1 = (lambda*v0)*v0';
@@ -92,4 +92,11 @@ R = A*W-M*W*Mu;
 [~,idx] = min(vecnorm(R));
 mu = Mu(idx,idx);
 w = W(:,idx);
+end
+function G = crandn(m,n)
+G = (randn(m,n)+1i*randn(m,n));
+end
+function Q = randunitary(n)
+[Q,R] = qr(crandn(n,n));
+Q = Q*diag(sign(diag(R)));
 end
